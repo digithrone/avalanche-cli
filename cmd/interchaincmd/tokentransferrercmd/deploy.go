@@ -678,6 +678,7 @@ func CallDeploy(_ []string, flags DeployFlags) error {
 
 	if err := ictt.RegisterRemote(
 		remoteRPCEndpoint,
+		nil,
 		remoteKey,
 		remoteAddress,
 	); err != nil {
@@ -713,6 +714,7 @@ func CallDeploy(_ []string, flags DeployFlags) error {
 	if collateralNeeded.Cmp(big.NewInt(0)) != 0 {
 		err = ictt.TokenHomeAddCollateral(
 			homeRPCEndpoint,
+			nil,
 			homeAddress,
 			homeKey,
 			remoteBlockchainID,
@@ -742,6 +744,7 @@ func CallDeploy(_ []string, flags DeployFlags) error {
 		ux.Logger.PrintToUser("Enabling native token remote contract to mint native tokens")
 		if err := precompiles.SetEnabled(
 			remoteRPCEndpoint,
+			nil,
 			precompiles.NativeMinterPrecompile,
 			remoteMinterManagerPrivKey,
 			remoteAddress,
@@ -752,6 +755,7 @@ func CallDeploy(_ []string, flags DeployFlags) error {
 		// Send a single token unit to report that the remote is collateralized.
 		err = ictt.Send(
 			homeRPCEndpoint,
+			nil,
 			homeAddress,
 			homeKey,
 			remoteBlockchainID,
@@ -786,6 +790,7 @@ func CallDeploy(_ []string, flags DeployFlags) error {
 			ux.Logger.PrintToUser("Removing minter admin %s", remoteMinterManagerAddress)
 			if err := precompiles.SetNone(
 				remoteRPCEndpoint,
+				nil,
 				precompiles.NativeMinterPrecompile,
 				remoteMinterManagerPrivKey,
 				common.HexToAddress(remoteMinterManagerAddress),

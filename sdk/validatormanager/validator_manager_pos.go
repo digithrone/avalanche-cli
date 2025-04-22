@@ -8,6 +8,7 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/avalanche-cli/pkg/contract"
+	"github.com/ava-labs/avalanche-cli/pkg/keychain"
 	"github.com/ava-labs/subnet-evm/core/types"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -17,6 +18,7 @@ import (
 // manage validators on [subnetID] using PoS specific settings
 func PoSValidatorManagerInitialize(
 	rpcURL string,
+	kc *keychain.Keychain,
 	managerAddress common.Address,
 	privateKey string,
 	subnetID [32]byte,
@@ -50,6 +52,7 @@ func PoSValidatorManagerInitialize(
 
 	return contract.TxToMethod(
 		rpcURL,
+		kc,
 		false,
 		common.Address{},
 		privateKey,

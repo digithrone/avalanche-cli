@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/ava-labs/avalanche-cli/pkg/contract"
+	"github.com/ava-labs/avalanche-cli/pkg/keychain"
 	"github.com/ava-labs/avalanche-cli/sdk/interchain"
 	"github.com/ava-labs/avalanche-cli/sdk/network"
 	"github.com/ava-labs/avalanche-cli/sdk/validator"
@@ -258,6 +259,7 @@ func GetPChainSubnetToL1ConversionMessage(
 // to verify p-chain already processed the associated ConvertSubnetToL1Tx
 func InitializeValidatorsSet(
 	rpcURL string,
+	kc *keychain.Keychain,
 	managerAddress common.Address,
 	privateKey string,
 	subnetID ids.ID,
@@ -292,6 +294,7 @@ func InitializeValidatorsSet(
 	}
 	return contract.TxToMethodWithWarpMessage(
 		rpcURL,
+		kc,
 		false,
 		common.Address{},
 		privateKey,

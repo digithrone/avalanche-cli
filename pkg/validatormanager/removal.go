@@ -11,6 +11,7 @@ import (
 
 	"github.com/ava-labs/avalanche-cli/pkg/application"
 	"github.com/ava-labs/avalanche-cli/pkg/contract"
+	"github.com/ava-labs/avalanche-cli/pkg/keychain"
 	"github.com/ava-labs/avalanche-cli/pkg/models"
 	"github.com/ava-labs/avalanche-cli/pkg/utils"
 	"github.com/ava-labs/avalanche-cli/pkg/ux"
@@ -31,6 +32,7 @@ import (
 
 func InitializeValidatorRemoval(
 	rpcURL string,
+	kc *keychain.Keychain,
 	managerAddress common.Address,
 	generateRawTxOnly bool,
 	managerOwnerAddress common.Address,
@@ -45,6 +47,7 @@ func InitializeValidatorRemoval(
 		if force {
 			return contract.TxToMethod(
 				rpcURL,
+				kc,
 				false,
 				common.Address{},
 				privateKey,
@@ -61,6 +64,7 @@ func InitializeValidatorRemoval(
 		// remove PoS validator with uptime proof
 		return contract.TxToMethodWithWarpMessage(
 			rpcURL,
+			kc,
 			false,
 			common.Address{},
 			privateKey,
@@ -79,6 +83,7 @@ func InitializeValidatorRemoval(
 	if useACP99 {
 		return contract.TxToMethod(
 			rpcURL,
+			kc,
 			generateRawTxOnly,
 			managerOwnerAddress,
 			privateKey,
@@ -92,6 +97,7 @@ func InitializeValidatorRemoval(
 	}
 	return contract.TxToMethod(
 		rpcURL,
+		kc,
 		generateRawTxOnly,
 		managerOwnerAddress,
 		privateKey,
@@ -150,6 +156,7 @@ func InitValidatorRemoval(
 	app *application.Avalanche,
 	network models.Network,
 	rpcURL string,
+	kc *keychain.Keychain,
 	chainSpec contract.ChainSpec,
 	generateRawTxOnly bool,
 	ownerAddressStr string,
@@ -236,6 +243,7 @@ func InitValidatorRemoval(
 		var tx *types.Transaction
 		tx, receipt, err = InitializeValidatorRemoval(
 			rpcURL,
+			kc,
 			managerAddress,
 			generateRawTxOnly,
 			ownerAddress,
@@ -292,6 +300,7 @@ func InitValidatorRemoval(
 
 func CompleteValidatorRemoval(
 	rpcURL string,
+	kc *keychain.Keychain,
 	managerAddress common.Address,
 	generateRawTxOnly bool,
 	ownerAddress common.Address,
@@ -302,6 +311,7 @@ func CompleteValidatorRemoval(
 	if useACP99 {
 		return contract.TxToMethodWithWarpMessage(
 			rpcURL,
+			kc,
 			generateRawTxOnly,
 			ownerAddress,
 			privateKey,
@@ -316,6 +326,7 @@ func CompleteValidatorRemoval(
 	}
 	return contract.TxToMethodWithWarpMessage(
 		rpcURL,
+		kc,
 		generateRawTxOnly,
 		ownerAddress,
 		privateKey,
@@ -334,6 +345,7 @@ func FinishValidatorRemoval(
 	app *application.Avalanche,
 	network models.Network,
 	rpcURL string,
+	kc *keychain.Keychain,
 	chainSpec contract.ChainSpec,
 	generateRawTxOnly bool,
 	ownerAddressStr string,
@@ -380,6 +392,7 @@ func FinishValidatorRemoval(
 	ownerAddress := common.HexToAddress(ownerAddressStr)
 	tx, _, err := CompleteValidatorRemoval(
 		rpcURL,
+		kc,
 		managerAddress,
 		generateRawTxOnly,
 		ownerAddress,

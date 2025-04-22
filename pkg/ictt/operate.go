@@ -8,6 +8,7 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/avalanche-cli/pkg/contract"
+	"github.com/ava-labs/avalanche-cli/pkg/keychain"
 	"github.com/ava-labs/avalanche-cli/pkg/ux"
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ethereum/go-ethereum/common"
@@ -184,6 +185,7 @@ func NativeTokenRemoteGetTotalNativeAssetSupply(
 
 func ERC20TokenHomeSend(
 	rpcURL string,
+	kc *keychain.Keychain,
 	homeAddress common.Address,
 	privateKey string,
 	destinationBlockchainID ids.ID,
@@ -207,6 +209,7 @@ func ERC20TokenHomeSend(
 	}
 	if _, _, err := contract.TxToMethod(
 		rpcURL,
+		kc,
 		false,
 		common.Address{},
 		privateKey,
@@ -232,6 +235,7 @@ func ERC20TokenHomeSend(
 	}
 	_, _, err = contract.TxToMethod(
 		rpcURL,
+		kc,
 		false,
 		common.Address{},
 		privateKey,
@@ -248,6 +252,7 @@ func ERC20TokenHomeSend(
 
 func NativeTokenHomeSend(
 	rpcURL string,
+	kc *keychain.Keychain,
 	homeAddress common.Address,
 	privateKey string,
 	destinationBlockchainID ids.ID,
@@ -281,6 +286,7 @@ func NativeTokenHomeSend(
 	}
 	_, _, err = contract.TxToMethod(
 		rpcURL,
+		kc,
 		false,
 		common.Address{},
 		privateKey,
@@ -296,6 +302,7 @@ func NativeTokenHomeSend(
 
 func ERC20TokenRemoteSend(
 	rpcURL string,
+	kc *keychain.Keychain,
 	remoteAddress common.Address,
 	privateKey string,
 	destinationBlockchainID ids.ID,
@@ -305,6 +312,7 @@ func ERC20TokenRemoteSend(
 ) error {
 	if _, _, err := contract.TxToMethod(
 		rpcURL,
+		kc,
 		false,
 		common.Address{},
 		privateKey,
@@ -340,6 +348,7 @@ func ERC20TokenRemoteSend(
 	}
 	_, _, err := contract.TxToMethod(
 		rpcURL,
+		kc,
 		false,
 		common.Address{},
 		privateKey,
@@ -356,6 +365,7 @@ func ERC20TokenRemoteSend(
 
 func NativeTokenRemoteSend(
 	rpcURL string,
+	kc *keychain.Keychain,
 	remoteAddress common.Address,
 	privateKey string,
 	destinationBlockchainID ids.ID,
@@ -385,6 +395,7 @@ func NativeTokenRemoteSend(
 	}
 	_, _, err := contract.TxToMethod(
 		rpcURL,
+		kc,
 		false,
 		common.Address{},
 		privateKey,
@@ -400,6 +411,7 @@ func NativeTokenRemoteSend(
 
 func NativeTokenHomeAddCollateral(
 	rpcURL string,
+	kc *keychain.Keychain,
 	homeAddress common.Address,
 	privateKey string,
 	remoteBlockchainID [32]byte,
@@ -408,6 +420,7 @@ func NativeTokenHomeAddCollateral(
 ) error {
 	_, _, err := contract.TxToMethod(
 		rpcURL,
+		kc,
 		false,
 		common.Address{},
 		privateKey,
@@ -424,6 +437,7 @@ func NativeTokenHomeAddCollateral(
 
 func ERC20TokenHomeAddCollateral(
 	rpcURL string,
+	kc *keychain.Keychain,
 	homeAddress common.Address,
 	privateKey string,
 	remoteBlockchainID [32]byte,
@@ -436,6 +450,7 @@ func ERC20TokenHomeAddCollateral(
 	}
 	if _, _, err := contract.TxToMethod(
 		rpcURL,
+		kc,
 		false,
 		common.Address{},
 		privateKey,
@@ -451,6 +466,7 @@ func ERC20TokenHomeAddCollateral(
 	}
 	_, _, err = contract.TxToMethod(
 		rpcURL,
+		kc,
 		false,
 		common.Address{},
 		privateKey,
@@ -468,6 +484,7 @@ func ERC20TokenHomeAddCollateral(
 
 func TokenHomeAddCollateral(
 	rpcURL string,
+	kc *keychain.Keychain,
 	homeAddress common.Address,
 	privateKey string,
 	remoteBlockchainID [32]byte,
@@ -486,6 +503,7 @@ func TokenHomeAddCollateral(
 	case ERC20TokenHome:
 		return ERC20TokenHomeAddCollateral(
 			rpcURL,
+			kc,
 			homeAddress,
 			privateKey,
 			remoteBlockchainID,
@@ -495,6 +513,7 @@ func TokenHomeAddCollateral(
 	case NativeTokenHome:
 		return NativeTokenHomeAddCollateral(
 			rpcURL,
+			kc,
 			homeAddress,
 			privateKey,
 			remoteBlockchainID,
@@ -511,6 +530,7 @@ func TokenHomeAddCollateral(
 
 func Send(
 	rpcURL string,
+	kc *keychain.Keychain,
 	address common.Address,
 	privateKey string,
 	destinationBlockchainID ids.ID,
@@ -529,6 +549,7 @@ func Send(
 	case ERC20TokenRemote:
 		return ERC20TokenRemoteSend(
 			rpcURL,
+			kc,
 			address,
 			privateKey,
 			destinationBlockchainID,
@@ -539,6 +560,7 @@ func Send(
 	case ERC20TokenHome:
 		return ERC20TokenHomeSend(
 			rpcURL,
+			kc,
 			address,
 			privateKey,
 			destinationBlockchainID,
@@ -549,6 +571,7 @@ func Send(
 	case NativeTokenHome:
 		return NativeTokenHomeSend(
 			rpcURL,
+			kc,
 			address,
 			privateKey,
 			destinationBlockchainID,
@@ -559,6 +582,7 @@ func Send(
 	case NativeTokenRemote:
 		return NativeTokenRemoteSend(
 			rpcURL,
+			kc,
 			address,
 			privateKey,
 			destinationBlockchainID,

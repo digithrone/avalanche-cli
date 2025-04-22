@@ -7,6 +7,7 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/avalanche-cli/pkg/contract"
+	"github.com/ava-labs/avalanche-cli/pkg/keychain"
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/subnet-evm/core/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -48,6 +49,7 @@ func MessageReceived(
 
 func SendCrossChainMessage(
 	rpcURL string,
+	kc *keychain.Keychain,
 	messengerAddress common.Address,
 	privateKey string,
 	destinationBlockchainID ids.ID,
@@ -79,6 +81,7 @@ func SendCrossChainMessage(
 	}
 	return contract.TxToMethod(
 		rpcURL,
+		kc,
 		false,
 		common.Address{},
 		privateKey,

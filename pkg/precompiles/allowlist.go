@@ -7,17 +7,20 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/avalanche-cli/pkg/contract"
+	"github.com/ava-labs/avalanche-cli/pkg/keychain"
 	"github.com/ethereum/go-ethereum/common"
 )
 
 func SetAdmin(
 	rpcURL string,
+	kc *keychain.Keychain,
 	precompile common.Address,
 	privateKey string,
 	toSet common.Address,
 ) error {
 	_, _, err := contract.TxToMethod(
 		rpcURL,
+		kc,
 		false,
 		common.Address{},
 		privateKey,
@@ -33,12 +36,14 @@ func SetAdmin(
 
 func SetManager(
 	rpcURL string,
+	kc *keychain.Keychain,
 	precompile common.Address,
 	privateKey string,
 	toSet common.Address,
 ) error {
 	_, _, err := contract.TxToMethod(
 		rpcURL,
+		kc,
 		false,
 		common.Address{},
 		privateKey,
@@ -54,12 +59,14 @@ func SetManager(
 
 func SetEnabled(
 	rpcURL string,
+	kc *keychain.Keychain,
 	precompile common.Address,
 	privateKey string,
 	toSet common.Address,
 ) error {
 	_, _, err := contract.TxToMethod(
 		rpcURL,
+		kc,
 		false,
 		common.Address{},
 		privateKey,
@@ -75,12 +82,14 @@ func SetEnabled(
 
 func SetNone(
 	rpcURL string,
+	kc *keychain.Keychain,
 	precompile common.Address,
 	privateKey string,
 	toSet common.Address,
 ) error {
 	_, _, err := contract.TxToMethod(
 		rpcURL,
+		kc,
 		false,
 		common.Address{},
 		privateKey,

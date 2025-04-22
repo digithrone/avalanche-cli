@@ -198,6 +198,7 @@ func initValidatorManager(_ *cobra.Command, args []string) error {
 			app.Log,
 			subnetSDK,
 			network,
+			nil, // ledger is not needed here
 			privateKey,
 			extraAggregatorPeers,
 			aggregatorLogger,
@@ -226,6 +227,7 @@ func initValidatorManager(_ *cobra.Command, args []string) error {
 			}
 			if _, err := validatormanager.DeployAndRegisterPoSValidatorManagerContrac(
 				initValidatorManagerFlags.RPC,
+				nil, // ledger is not needed here
 				genesisPrivateKey,
 				proxyOwnerPrivateKey,
 			); err != nil {
@@ -241,6 +243,7 @@ func initValidatorManager(_ *cobra.Command, args []string) error {
 			app.Log,
 			subnetSDK,
 			network,
+			nil, // ledger is not needed here
 			privateKey,
 			extraAggregatorPeers,
 			aggregatorLogger,

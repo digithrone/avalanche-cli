@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/ava-labs/avalanche-cli/pkg/contract"
+	"github.com/ava-labs/avalanche-cli/pkg/keychain"
 	"github.com/ava-labs/avalanche-cli/pkg/utils"
 	"github.com/ava-labs/avalanche-cli/pkg/ux"
 	"github.com/ethereum/go-ethereum/common"
@@ -29,6 +30,7 @@ type TokenRemoteSettings struct {
 
 func RegisterRemote(
 	rpcURL string,
+	kc *keychain.Keychain,
 	privateKey string,
 	remoteAddress common.Address,
 ) error {
@@ -38,6 +40,7 @@ func RegisterRemote(
 	}
 	_, _, err := contract.TxToMethod(
 		rpcURL,
+		kc,
 		false,
 		common.Address{},
 		privateKey,

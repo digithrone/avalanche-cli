@@ -10,6 +10,7 @@ import (
 
 	"github.com/ava-labs/avalanche-cli/pkg/application"
 	"github.com/ava-labs/avalanche-cli/pkg/contract"
+	"github.com/ava-labs/avalanche-cli/pkg/keychain"
 	"github.com/ava-labs/avalanche-cli/pkg/models"
 	"github.com/ava-labs/avalanche-cli/pkg/utils"
 	"github.com/ava-labs/avalanche-cli/pkg/ux"
@@ -33,6 +34,7 @@ import (
 
 func InitializeValidatorWeightChange(
 	rpcURL string,
+	kc *keychain.Keychain,
 	managerAddress common.Address,
 	generateRawTxOnly bool,
 	managerOwnerAddress common.Address,
@@ -42,6 +44,7 @@ func InitializeValidatorWeightChange(
 ) (*types.Transaction, *types.Receipt, error) {
 	return contract.TxToMethod(
 		rpcURL,
+		kc,
 		generateRawTxOnly,
 		managerOwnerAddress,
 		privateKey,
@@ -61,6 +64,7 @@ func InitValidatorWeightChange(
 	app *application.Avalanche,
 	network models.Network,
 	rpcURL string,
+	kc *keychain.Keychain,
 	chainSpec contract.ChainSpec,
 	generateRawTxOnly bool,
 	ownerAddressStr string,
@@ -127,6 +131,7 @@ func InitValidatorWeightChange(
 		var tx *types.Transaction
 		tx, receipt, err = InitializeValidatorWeightChange(
 			rpcURL,
+			kc,
 			managerAddress,
 			generateRawTxOnly,
 			ownerAddress,
@@ -177,6 +182,7 @@ func InitValidatorWeightChange(
 
 func CompleteValidatorWeightChange(
 	rpcURL string,
+	kc *keychain.Keychain,
 	managerAddress common.Address,
 	generateRawTxOnly bool,
 	ownerAddress common.Address,
@@ -185,6 +191,7 @@ func CompleteValidatorWeightChange(
 ) (*types.Transaction, *types.Receipt, error) {
 	return contract.TxToMethodWithWarpMessage(
 		rpcURL,
+		kc,
 		generateRawTxOnly,
 		ownerAddress,
 		privateKey,
@@ -203,6 +210,7 @@ func FinishValidatorWeightChange(
 	app *application.Avalanche,
 	network models.Network,
 	rpcURL string,
+	kc *keychain.Keychain,
 	chainSpec contract.ChainSpec,
 	generateRawTxOnly bool,
 	ownerAddressStr string,
@@ -258,6 +266,7 @@ func FinishValidatorWeightChange(
 	ownerAddress := common.HexToAddress(ownerAddressStr)
 	tx, _, err := CompleteValidatorWeightChange(
 		rpcURL,
+		kc,
 		managerAddress,
 		generateRawTxOnly,
 		ownerAddress,

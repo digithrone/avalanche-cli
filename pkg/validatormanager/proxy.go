@@ -7,6 +7,7 @@ import (
 	"math/big"
 
 	"github.com/ava-labs/avalanche-cli/pkg/contract"
+	"github.com/ava-labs/avalanche-cli/pkg/keychain"
 	"github.com/ava-labs/avalanche-cli/sdk/evm"
 	validatorManagerSDK "github.com/ava-labs/avalanche-cli/sdk/validatormanager"
 	"github.com/ava-labs/subnet-evm/core/types"
@@ -16,11 +17,13 @@ import (
 
 func SetupValidatorManagerAtProxy(
 	rpcURL string,
+	kc *keychain.Keychain,
 	proxyManagerPrivateKey string,
 	validatorManager common.Address,
 ) (*types.Transaction, *types.Receipt, error) {
 	return contract.TxToMethod(
 		rpcURL,
+		kc,
 		false,
 		common.Address{},
 		proxyManagerPrivateKey,

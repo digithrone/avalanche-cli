@@ -12,6 +12,7 @@ import (
 
 	"github.com/ava-labs/avalanche-cli/pkg/application"
 	"github.com/ava-labs/avalanche-cli/pkg/contract"
+	"github.com/ava-labs/avalanche-cli/pkg/keychain"
 	"github.com/ava-labs/avalanche-cli/pkg/models"
 	"github.com/ava-labs/avalanche-cli/pkg/utils"
 	"github.com/ava-labs/avalanche-cli/pkg/ux"
@@ -36,6 +37,7 @@ import (
 
 func InitializeValidatorRegistrationPoSNative(
 	rpcURL string,
+	kc *keychain.Keychain,
 	managerAddress common.Address,
 	managerOwnerPrivateKey string,
 	nodeID ids.NodeID,
@@ -82,6 +84,7 @@ func InitializeValidatorRegistrationPoSNative(
 
 	return contract.TxToMethod(
 		rpcURL,
+		kc,
 		false,
 		common.Address{},
 		managerOwnerPrivateKey,
@@ -99,6 +102,7 @@ func InitializeValidatorRegistrationPoSNative(
 // step 1 of flow for adding a new validator
 func InitializeValidatorRegistrationPoA(
 	rpcURL string,
+	kc *keychain.Keychain,
 	managerAddress common.Address,
 	generateRawTxOnly bool,
 	managerOwnerAddress common.Address,
@@ -130,6 +134,7 @@ func InitializeValidatorRegistrationPoA(
 	if useACP99 {
 		return contract.TxToMethod(
 			rpcURL,
+			kc,
 			generateRawTxOnly,
 			managerOwnerAddress,
 			managerOwnerPrivateKey,
@@ -155,6 +160,7 @@ func InitializeValidatorRegistrationPoA(
 	}
 	return contract.TxToMethod(
 		rpcURL,
+		kc,
 		generateRawTxOnly,
 		managerOwnerAddress,
 		managerOwnerPrivateKey,
@@ -354,6 +360,7 @@ func GetPChainL1ValidatorRegistrationMessage(
 // last step of flow for adding a new validator
 func CompleteValidatorRegistration(
 	rpcURL string,
+	kc *keychain.Keychain,
 	managerAddress common.Address,
 	generateRawTxOnly bool,
 	ownerAddress common.Address,
@@ -362,6 +369,7 @@ func CompleteValidatorRegistration(
 ) (*types.Transaction, *types.Receipt, error) {
 	return contract.TxToMethodWithWarpMessage(
 		rpcURL,
+		kc,
 		generateRawTxOnly,
 		ownerAddress,
 		privateKey,
@@ -380,6 +388,7 @@ func InitValidatorRegistration(
 	app *application.Avalanche,
 	network models.Network,
 	rpcURL string,
+	kc *keychain.Keychain,
 	chainSpec contract.ChainSpec,
 	generateRawTxOnly bool,
 	ownerAddressStr string,
@@ -437,6 +446,7 @@ func InitValidatorRegistration(
 			ux.Logger.PrintLineSeparator()
 			tx, receipt, err = InitializeValidatorRegistrationPoSNative(
 				rpcURL,
+				kc,
 				managerAddress,
 				ownerPrivateKey,
 				nodeID,
@@ -460,6 +470,7 @@ func InitValidatorRegistration(
 			managerAddress = common.HexToAddress(validatorManagerAddressStr)
 			tx, receipt, err = InitializeValidatorRegistrationPoA(
 				rpcURL,
+				kc,
 				managerAddress,
 				generateRawTxOnly,
 				ownerAddress,
@@ -524,6 +535,7 @@ func FinishValidatorRegistration(
 	app *application.Avalanche,
 	network models.Network,
 	rpcURL string,
+	kc *keychain.Keychain,
 	chainSpec contract.ChainSpec,
 	generateRawTxOnly bool,
 	ownerAddressStr string,
@@ -569,6 +581,7 @@ func FinishValidatorRegistration(
 	ownerAddress := common.HexToAddress(ownerAddressStr)
 	tx, _, err := CompleteValidatorRegistration(
 		rpcURL,
+		kc,
 		managerAddress,
 		generateRawTxOnly,
 		ownerAddress,

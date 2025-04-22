@@ -270,6 +270,7 @@ func InitializeValidatorManager(
 	subnetID ids.ID,
 	blockchainID ids.ID,
 	network models.Network,
+	kc *keychain.Keychain,
 	avaGoBootstrapValidators []*txs.ConvertSubnetToL1Validator,
 	pos bool,
 	validatorManagerAddrStr string,
@@ -358,6 +359,7 @@ func InitializeValidatorManager(
 			}
 			if _, err := validatormanager.DeployAndRegisterPoSValidatorManagerContrac(
 				rpcURL,
+				kc,
 				genesisPrivateKey,
 				proxyOwnerPrivateKey,
 			); err != nil {
@@ -395,6 +397,7 @@ func InitializeValidatorManager(
 			aggregatorCtx,
 			app.Log,
 			network.SDKNetwork(),
+			kc,
 			genesisPrivateKey,
 			extraAggregatorPeers,
 			aggregatorLogger,
@@ -419,6 +422,7 @@ func InitializeValidatorManager(
 			aggregatorCtx,
 			app.Log,
 			network.SDKNetwork(),
+			kc,
 			genesisPrivateKey,
 			extraAggregatorPeers,
 			aggregatorLogger,
@@ -792,6 +796,7 @@ func convertBlockchain(_ *cobra.Command, args []string) error {
 			subnetID,
 			blockchainID,
 			network,
+			kc,
 			avaGoBootstrapValidators,
 			sidecar.ValidatorManagement == validatormanagertypes.ProofOfStake,
 			validatorManagerAddress,

@@ -832,6 +832,7 @@ func deployBlockchain(cmd *cobra.Command, args []string) error {
 			subnetID,
 			blockchainID,
 			network,
+			kc,
 			avaGoBootstrapValidators,
 			sidecar.ValidatorManagement == validatormanagertypes.ProofOfStake,
 			validatorManagerStr,

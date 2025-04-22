@@ -236,6 +236,7 @@ func setWeight(_ *cobra.Command, args []string) error {
 		return changeWeightACP99(
 			deployer,
 			network,
+			kc,
 			blockchainName,
 			nodeID,
 			newWeight,
@@ -275,6 +276,7 @@ func setWeight(_ *cobra.Command, args []string) error {
 	err = removeValidatorSOV(
 		deployer,
 		network,
+		kc,
 		blockchainName,
 		nodeID,
 		0, // automatic uptime
@@ -318,6 +320,7 @@ func setWeight(_ *cobra.Command, args []string) error {
 func changeWeightACP99(
 	deployer *subnet.PublicDeployer,
 	network models.Network,
+	kc *keychain.Keychain,
 	blockchainName string,
 	nodeID ids.NodeID,
 	weight uint64,
@@ -383,6 +386,7 @@ func changeWeightACP99(
 		app,
 		network,
 		changeWeightFlags.RPC,
+		kc,
 		chainSpec,
 		externalValidatorManagerOwner,
 		validatorManagerOwner,
@@ -437,6 +441,7 @@ func changeWeightACP99(
 		app,
 		network,
 		changeWeightFlags.RPC,
+		kc,
 		chainSpec,
 		externalValidatorManagerOwner,
 		validatorManagerOwner,

@@ -13,6 +13,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/ava-labs/avalanche-cli/pkg/keychain"
 	"github.com/ava-labs/avalanche-cli/sdk/evm"
 	"github.com/ava-labs/avalanche-cli/sdk/multisig"
 	"github.com/ava-labs/avalanche-cli/sdk/network"
@@ -343,6 +344,7 @@ func (c *Subnet) InitializeProofOfAuthority(
 	ctx context.Context,
 	log logging.Logger,
 	network network.Network,
+	kc *keychain.Keychain,
 	privateKey string,
 	aggregatorExtraPeerEndpoints []info.Peer,
 	aggregatorLogger logging.Logger,
@@ -380,6 +382,7 @@ func (c *Subnet) InitializeProofOfAuthority(
 	managerAddress := common.HexToAddress(validatorManagerAddressStr)
 	tx, _, err := validatormanager.PoAValidatorManagerInitialize(
 		c.RPC,
+		kc,
 		managerAddress,
 		privateKey,
 		c.SubnetID,
@@ -410,6 +413,7 @@ func (c *Subnet) InitializeProofOfAuthority(
 
 	tx, _, err = validatormanager.InitializeValidatorsSet(
 		c.RPC,
+		kc,
 		managerAddress,
 		privateKey,
 		c.SubnetID,
@@ -428,6 +432,7 @@ func (c *Subnet) InitializeProofOfStake(
 	ctx context.Context,
 	log logging.Logger,
 	network network.Network,
+	kc *keychain.Keychain,
 	privateKey string,
 	aggregatorExtraPeerEndpoints []info.Peer,
 	aggregatorLogger logging.Logger,
@@ -445,6 +450,7 @@ func (c *Subnet) InitializeProofOfStake(
 	managerAddress := common.HexToAddress(validatorManagerAddressStr)
 	tx, _, err := validatormanager.PoSValidatorManagerInitialize(
 		c.RPC,
+		kc,
 		managerAddress,
 		privateKey,
 		c.SubnetID,
@@ -473,6 +479,7 @@ func (c *Subnet) InitializeProofOfStake(
 
 	tx, _, err = validatormanager.InitializeValidatorsSet(
 		c.RPC,
+		kc,
 		managerAddress,
 		privateKey,
 		c.SubnetID,

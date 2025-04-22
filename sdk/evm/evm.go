@@ -9,9 +9,11 @@ import (
 	"fmt"
 	"math/big"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/ava-labs/avalanche-cli/pkg/keychain"
 	"github.com/ava-labs/avalanche-cli/sdk/constants"
 	"github.com/ava-labs/avalanche-cli/sdk/utils"
 	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
@@ -448,6 +450,56 @@ func (client Client) GetTxOptsWithSigner(
 	return bind.NewKeyedTransactorWithChainID(prefundedPrivateKey, chainID)
 }
 
+// returns tx options that include signer for [prefundedPrivateKeyStr]
+// supports [repeatsOnFailure] failures when gathering chain info
+func (client Client) GetTxOptsWithSignerWithLedger(
+	kc *keychain.Keychain,
+	ledgerAddressIndex int,
+) (*bind.TransactOpts, error) {
+	chainID, err := client.GetChainID()
+	if err != nil {
+		return nil, fmt.Errorf("failure generating signer: %w", err)
+	}
+	return NewKeyedTransactorWithChainIDLedger(ledgerAddressIndex, kc, chainID)
+}
+
+// NewKeyedTransactorWithChainID is a utility method to easily create a transaction signer
+// from a ledger private key
+func NewKeyedTransactorWithChainIDLedger(ledgerAddressIndex int, kc *keychain.Keychain, chainID *big.Int) (*bind.TransactOpts, error) {
+	if chainID == nil {
+		return nil, bind.ErrNoChainID
+	}
+	if kc.Ledger2 == nil {
+		return nil, fmt.Errorf("Ledger2 must be initialized to sign eth type transactions.")
+	}
+	ethAddressShortId, err := kc.Ledger2.EthAddress(uint32(ledgerAddressIndex))
+	if err != nil {
+		return nil, err
+	}
+	ethAddress := common.BytesToAddress(ethAddressShortId[:])
+	return &bind.TransactOpts{
+		From: ethAddress,
+		Signer: func(address common.Address, tx *types.Transaction) (*types.Transaction, error) {
+			if address != ethAddress {
+				return nil, bind.ErrNotAuthorized
+			}
+			// this is a workaround for ledger to work. If ChainId is not set it will not work
+			patchedTx := types.NewTx(&types.DynamicFeeTx{
+				ChainID:   chainID,
+				Nonce:     tx.Nonce(),
+				To:        tx.To(),
+				Value:     tx.Value(),
+				Gas:       tx.Gas(),
+				GasFeeCap: tx.GasFeeCap(),
+				GasTipCap: tx.GasTipCap(),
+				Data:      tx.Data(),
+			})
+			return kc.Ledger2.SignEthTransaction(chainID, patchedTx, uint32(ledgerAddressIndex))
+		},
+		Context: context.Background(),
+	}, nil
+}
+
 // waits for [timeout] until evm is bootstrapped
 // considers evm is bootstrapped if it responds to an evm call (ChainID)
 func (client Client) WaitForEVMBootstrapped(timeout time.Duration) error {
@@ -472,6 +524,7 @@ func (client Client) WaitForEVMBootstrapped(timeout time.Duration) error {
 // if [generateRawTxOnly] is set, it generates a similar, unsigned tx, with given [from] address
 func (client Client) TransactWithWarpMessage(
 	from common.Address,
+	kc *keychain.Keychain,
 	privateKeyStr string,
 	warpMessage *avalancheWarp.Message,
 	contract common.Address,
@@ -490,10 +543,34 @@ func (client Client) TransactWithWarpMessage(
 	if !generateRawTxOnly && privateKeyStr == "" {
 		return nil, fmt.Errorf("from private key must be defined to be able to sign the tx at GetTxToMethodWithWarpMessage")
 	}
+	useLedgerToSignTransaction := false
+	var ledgerIndex uint32
 	if privateKeyStr != "" {
-		privateKey, err = crypto.HexToECDSA(privateKeyStr)
-		if err != nil {
-			return nil, err
+		if strings.HasPrefix(privateKeyStr, "ledger:") {
+			if kc.Ledger2 == nil {
+				return nil, fmt.Errorf("Ledger2 must be initialized to sign eth type transactions.")
+			}
+			// extract ledger index from privateKeyStr
+			ledgerIndexStr := strings.TrimPrefix(privateKeyStr, "ledger:")
+			index, err := strconv.Atoi(ledgerIndexStr)
+			if err != nil {
+				return nil, fmt.Errorf("invalid ledger index %s: %w", ledgerIndexStr, err)
+			}
+			ledgerIndex = uint32(index)
+			shortId, err := kc.Ledger2.EthAddress(uint32(ledgerIndex))
+			if err != nil {
+				return nil, err
+			}
+			address := common.BytesToAddress(shortId.Bytes())
+			if address != from {
+				return nil, fmt.Errorf("address %s does not match ledger address %s at index %d", from.Hex(), address.Hex(), ledgerIndex)
+			}
+			useLedgerToSignTransaction = true
+		} else {
+			privateKey, err = crypto.HexToECDSA(privateKeyStr)
+			if err != nil {
+				return nil, err
+			}
 		}
 		if from == (common.Address{}) {
 			from = crypto.PubkeyToAddress(privateKey.PublicKey)
@@ -544,8 +621,18 @@ func (client Client) TransactWithWarpMessage(
 	if generateRawTxOnly {
 		return tx, nil
 	}
-	txSigner := types.LatestSignerForChainID(chainID)
-	return types.SignTx(tx, txSigner, privateKey)
+
+	if useLedgerToSignTransaction {
+		kc.Ledger2.SignEthTransaction(chainID, tx, ledgerIndex)
+		signedTx, err := kc.Ledger2.SignEthTransaction(chainID, tx, ledgerIndex)
+		if err != nil {
+			return nil, fmt.Errorf("error signing transaction using ledger: %w", err)
+		}
+		return signedTx, nil
+	} else {
+		txSigner := types.LatestSignerForChainID(chainID)
+		return types.SignTx(tx, txSigner, privateKey)
+	}
 }
 
 // gets block [n]

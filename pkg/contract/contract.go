@@ -9,8 +9,10 @@ import (
 	"fmt"
 	"math/big"
 	"reflect"
+	"strconv"
 	"strings"
 
+	"github.com/ava-labs/avalanche-cli/pkg/keychain"
 	"github.com/ava-labs/avalanche-cli/pkg/ux"
 	"github.com/ava-labs/avalanche-cli/sdk/evm"
 	sdkUtils "github.com/ava-labs/avalanche-cli/sdk/utils"
@@ -300,6 +302,7 @@ func idempotentSigner(
 // also send [payment] tokens to it
 func TxToMethod(
 	rpcURL string,
+	kc *keychain.Keychain, //can be null when ledger is not to be supported
 	generateRawTxOnly bool,
 	from common.Address,
 	privateKey string,
@@ -340,6 +343,19 @@ func TxToMethod(
 			Signer: idempotentSigner,
 			NoSend: true,
 		}
+	} else if kc != nil && kc.Ledger2 != nil && strings.HasPrefix(privateKey, "ledger:") { //handler ledger signing here
+		// if private key contains ledger:0 format then extract index and fetch address
+		ledgerAddressIndexStr := strings.TrimPrefix(privateKey, "ledger:")
+		ledgerAddressIndex, err := strconv.Atoi(ledgerAddressIndexStr)
+		if err != nil {
+			return nil, nil, fmt.Errorf("error parsing ledger index from private key: %w", err)
+		}
+
+		res, err := client.GetTxOptsWithSignerWithLedger(kc, ledgerAddressIndex)
+		if err != nil {
+			return nil, nil, err
+		}
+		txOpts = res
 	} else {
 		txOpts, err = client.GetTxOptsWithSigner(privateKey)
 		if err != nil {
@@ -351,6 +367,7 @@ func TxToMethod(
 	if err != nil {
 		trace, traceCallErr := DebugTraceCall(
 			rpcURL,
+			kc,
 			from,
 			privateKey,
 			contractAddress,
@@ -397,6 +414,7 @@ func TxToMethod(
 // also send [payment] tokens to it
 func TxToMethodWithWarpMessage(
 	rpcURL string,
+	kc *keychain.Keychain,
 	generateRawTxOnly bool,
 	from common.Address,
 	privateKey string,
@@ -436,6 +454,7 @@ func TxToMethodWithWarpMessage(
 	defer client.Close()
 	tx, err := client.TransactWithWarpMessage(
 		from,
+		kc,
 		privateKey,
 		warpMessage,
 		contractAddress,
@@ -509,6 +528,7 @@ func handleFailedReceiptStatus(
 
 func DebugTraceCall(
 	rpcURL string,
+	kc *keychain.Keychain,
 	from common.Address,
 	privateKey string,
 	contractAddress common.Address,
@@ -537,11 +557,34 @@ func DebugTraceCall(
 	}
 	defer client.Close()
 	if from == (common.Address{}) {
-		pk, err := crypto.HexToECDSA(privateKey)
-		if err != nil {
-			return nil, err
+		// if private key contains ledger:0 format then extract index and fetch address
+		if strings.HasPrefix(privateKey, "ledger:") {
+			if kc.Ledger2 == nil {
+				return nil, fmt.Errorf("ledger2 not initialized")
+			}
+			ledgerIndexStr := strings.TrimPrefix(privateKey, "ledger:")
+			if err != nil {
+				return nil, fmt.Errorf("error parsing ledger index from private key: %w", ledgerIndexStr)
+			}
+			index, err := strconv.Atoi(ledgerIndexStr)
+			if err != nil {
+				return nil, fmt.Errorf("error parsing ledger index from private key: %w", err)
+			}
+			shortId, err := kc.Ledger2.EthAddress(uint32(index))
+			if err != nil {
+				return nil, fmt.Errorf("error getting address from ledger: %w", err)
+			}
+			address := common.BytesToAddress(shortId.Bytes())
+			if address != from {
+				return nil, fmt.Errorf("address %s does not match ledger address %s at index %d", from.Hex(), address.Hex(), index)
+			}
+		} else {
+			pk, err := crypto.HexToECDSA(privateKey)
+			if err != nil {
+				return nil, err
+			}
+			from = crypto.PubkeyToAddress(pk.PublicKey)
 		}
-		from = crypto.PubkeyToAddress(pk.PublicKey)
 	}
 	data := map[string]string{
 		"from":  from.Hex(),

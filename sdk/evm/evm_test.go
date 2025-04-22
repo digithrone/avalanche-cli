@@ -1950,6 +1950,7 @@ func TestTransactWithWarpMessage(t *testing.T) {
 			tt.setupMock()
 			tx, err := client.TransactWithWarpMessage(
 				tt.from,
+				nil, // no keychain is being tested here
 				tt.privateKey,
 				tt.warpMessage,
 				tt.contract,

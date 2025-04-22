@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/ava-labs/avalanche-cli/pkg/contract"
+	"github.com/ava-labs/avalanche-cli/pkg/keychain"
 
 	"github.com/ava-labs/avalanche-cli/pkg/models"
 	blockchainSDK "github.com/ava-labs/avalanche-cli/sdk/blockchain"
@@ -109,6 +110,7 @@ func DeployPoSValidatorManagerContract(
 
 func DeployAndRegisterPoSValidatorManagerContrac(
 	rpcURL string,
+	kc *keychain.Keychain,
 	privateKey string,
 	proxyOwnerPrivateKey string,
 ) (common.Address, error) {
@@ -121,6 +123,7 @@ func DeployAndRegisterPoSValidatorManagerContrac(
 	}
 	if _, _, err := SetupValidatorManagerAtProxy(
 		rpcURL,
+		kc,
 		proxyOwnerPrivateKey,
 		posValidatorManagerAddress,
 	); err != nil {
@@ -198,6 +201,7 @@ func SetupPoA(
 	log logging.Logger,
 	subnet blockchainSDK.Subnet,
 	network models.Network,
+	kc *keychain.Keychain,
 	privateKey string,
 	aggregatorExtraPeerEndpoints []info.Peer,
 	aggregatorLogger logging.Logger,
@@ -208,6 +212,7 @@ func SetupPoA(
 		ctx,
 		log,
 		network.SDKNetwork(),
+		kc,
 		privateKey,
 		aggregatorExtraPeerEndpoints,
 		aggregatorLogger,
@@ -226,6 +231,7 @@ func SetupPoS(
 	log logging.Logger,
 	subnet blockchainSDK.Subnet,
 	network models.Network,
+	kc *keychain.Keychain,
 	privateKey string,
 	aggregatorExtraPeerEndpoints []info.Peer,
 	aggregatorLogger logging.Logger,
@@ -236,6 +242,7 @@ func SetupPoS(
 		ctx,
 		log,
 		network.SDKNetwork(),
+		kc,
 		privateKey,
 		aggregatorExtraPeerEndpoints,
 		aggregatorLogger,

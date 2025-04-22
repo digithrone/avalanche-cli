@@ -5,6 +5,7 @@ package blockchaincmd
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -408,7 +409,25 @@ func CallAddValidator(
 			return err
 		}
 		if !ownerPrivateKeyFound {
-			return fmt.Errorf("private key for Validator manager owner %s is not found", validatorManagerOwner)
+			foundInLedger := false
+			if kc.Ledger2 != nil {
+				// check if address is in the ledger specified indices
+				for i, index := range kc.LedgerIndices {
+					ledgerCChainAddress, err := kc.Ledger2.EthAddress(index)
+					if err != nil {
+						return err
+					}
+					ledgerCAddress := common.BytesToAddress(ledgerCChainAddress.Bytes()).Hex()
+					if ledgerCAddress == sc.ValidatorManagerOwner {
+						foundInLedger = true
+						ownerPrivateKey = "ledger:" + strconv.Itoa(i)
+						break
+					}
+				}
+			}
+			if !foundInLedger {
+				return fmt.Errorf("private key for Validator manager owner %s is not found", sc.ValidatorManagerOwner)
+			}
 		}
 	}
 
@@ -526,6 +545,7 @@ func CallAddValidator(
 		app,
 		network,
 		rpcURL,
+		kc,
 		chainSpec,
 		externalValidatorManagerOwner,
 		validatorManagerOwner,
@@ -579,6 +599,7 @@ func CallAddValidator(
 		app,
 		network,
 		rpcURL,
+		kc,
 		chainSpec,
 		externalValidatorManagerOwner,
 		validatorManagerOwner,

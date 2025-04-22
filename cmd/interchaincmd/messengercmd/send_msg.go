@@ -160,6 +160,7 @@ func sendMsg(_ *cobra.Command, args []string) error {
 	ux.Logger.PrintToUser("Delivering message %q from source blockchain %q (%s)", message, sourceBlockchainName, sourceBlockchainID)
 	tx, receipt, err := interchain.SendCrossChainMessage(
 		sourceRPCEndpoint,
+		nil,
 		common.HexToAddress(sourceMessengerAddress),
 		privateKey,
 		destBlockchainID,

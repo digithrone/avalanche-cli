@@ -344,14 +344,7 @@ func TxToMethod(
 			NoSend: true,
 		}
 	} else if kc != nil && kc.Ledger2 != nil && strings.HasPrefix(privateKey, "ledger:") { //handler ledger signing here
-		// if private key contains ledger:0 format then extract index and fetch address
-		ledgerAddressIndexStr := strings.TrimPrefix(privateKey, "ledger:")
-		ledgerAddressIndex, err := strconv.Atoi(ledgerAddressIndexStr)
-		if err != nil {
-			return nil, nil, fmt.Errorf("error parsing ledger index from private key: %w", err)
-		}
-
-		res, err := client.GetTxOptsWithSignerWithLedger(kc, ledgerAddressIndex)
+		res, err := client.GetTxOptsWithLedger(kc, privateKey)
 		if err != nil {
 			return nil, nil, err
 		}

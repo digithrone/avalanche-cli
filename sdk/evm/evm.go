@@ -452,26 +452,36 @@ func (client Client) GetTxOptsWithSigner(
 
 // returns tx options that include signer for [prefundedPrivateKeyStr]
 // supports [repeatsOnFailure] failures when gathering chain info
-func (client Client) GetTxOptsWithSignerWithLedger(
+func (client Client) GetTxOptsWithLedger(
 	kc *keychain.Keychain,
-	ledgerAddressIndex int,
+	prefundedPrivateKeyStr string,
 ) (*bind.TransactOpts, error) {
 	chainID, err := client.GetChainID()
 	if err != nil {
 		return nil, fmt.Errorf("failure generating signer: %w", err)
 	}
-	return NewKeyedTransactorWithChainIDLedger(ledgerAddressIndex, kc, chainID)
+	return NewKeyedTransactorWithChainIDLedger(prefundedPrivateKeyStr, kc, chainID)
 }
 
 // NewKeyedTransactorWithChainID is a utility method to easily create a transaction signer
 // from a ledger private key
-func NewKeyedTransactorWithChainIDLedger(ledgerAddressIndex int, kc *keychain.Keychain, chainID *big.Int) (*bind.TransactOpts, error) {
+func NewKeyedTransactorWithChainIDLedger(prefundedPrivateKeyStr string, kc *keychain.Keychain, chainID *big.Int) (*bind.TransactOpts, error) {
 	if chainID == nil {
 		return nil, bind.ErrNoChainID
 	}
 	if kc.Ledger2 == nil {
 		return nil, fmt.Errorf("Ledger2 must be initialized to sign eth type transactions.")
 	}
+	if !strings.HasPrefix(prefundedPrivateKeyStr, "ledger:") {
+		return nil, fmt.Errorf("ledger private key must start with 'ledger:'")
+	}
+	// extract ledger index from privateKeyStr
+	ledgerIndexStr := strings.TrimPrefix(prefundedPrivateKeyStr, "ledger:")
+	index, err := strconv.Atoi(ledgerIndexStr)
+	if err != nil {
+		return nil, fmt.Errorf("invalid ledger index %s: %w", ledgerIndexStr, err)
+	}
+	ledgerAddressIndex := uint32(index)
 	ethAddressShortId, err := kc.Ledger2.EthAddress(uint32(ledgerAddressIndex))
 	if err != nil {
 		return nil, err
@@ -483,9 +493,8 @@ func NewKeyedTransactorWithChainIDLedger(ledgerAddressIndex int, kc *keychain.Ke
 			if address != ethAddress {
 				return nil, bind.ErrNotAuthorized
 			}
-			// this is a workaround for ledger to work. If ChainId is not set it will not work
 			patchedTx := types.NewTx(&types.DynamicFeeTx{
-				ChainID:   chainID,
+				ChainID:   chainID, // chain id must be set in order for ledger to sign tx
 				Nonce:     tx.Nonce(),
 				To:        tx.To(),
 				Value:     tx.Value(),

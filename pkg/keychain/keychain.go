@@ -14,9 +14,9 @@ import (
 	"github.com/ava-labs/avalanche-cli/pkg/prompts"
 	"github.com/ava-labs/avalanche-cli/pkg/utils"
 	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/ava-labs/avalanche-cli/sdk/ledger2"
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/utils/crypto/keychain"
-	"github.com/ava-labs/avalanchego/utils/crypto/ledger"
 	"github.com/ava-labs/avalanchego/utils/formatting/address"
 	"github.com/ava-labs/avalanchego/utils/logging"
 	"github.com/ava-labs/avalanchego/utils/set"
@@ -41,16 +41,22 @@ type Keychain struct {
 	Network       models.Network
 	Keychain      keychain.Keychain
 	Ledger        keychain.Ledger
+	Ledger2       ledger2.Ledger2
 	UsesLedger    bool
 	LedgerIndices []uint32
 }
 
 func NewKeychain(network models.Network, keychain keychain.Keychain, ledger keychain.Ledger, ledgerIndices []uint32) *Keychain {
 	usesLedger := len(ledgerIndices) > 0
+	ledger2If, ok := ledger.(ledger2.Ledger2)
+	if !ok {
+		ledger2If = nil
+	}
 	return &Keychain{
 		Network:       network,
 		Keychain:      keychain,
 		Ledger:        ledger,
+		Ledger2:       ledger2If,
 		UsesLedger:    usesLedger,
 		LedgerIndices: ledgerIndices,
 	}
@@ -188,7 +194,8 @@ func GetKeychain(
 	}
 	// get keychain accessor
 	if useLedger {
-		ledgerDevice, err := ledger.New()
+		//ledgerDevice, err := ledger.New()
+		ledgerDevice, err := ledger2.New()
 		if err != nil {
 			return nil, err
 		}

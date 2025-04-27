@@ -14,6 +14,7 @@ import (
 	"github.com/ava-labs/avalanche-cli/pkg/networkoptions"
 	"github.com/ava-labs/avalanche-cli/pkg/utils"
 	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/ava-labs/avalanche-cli/sdk/ledger2"
 	sdkUtils "github.com/ava-labs/avalanche-cli/sdk/utils"
 	"github.com/ava-labs/avalanchego/ids"
 	ledger "github.com/ava-labs/avalanchego/utils/crypto/ledger"
@@ -320,7 +321,7 @@ func listKeys(*cobra.Command, []string) error {
 		for _, index := range ledgerIndices {
 			ledgerIndicesU32 = append(ledgerIndicesU32, uint32(index))
 		}
-		addrInfos, err = getLedgerIndicesInfo(clients.p, ledgerIndicesU32, networks)
+		addrInfos, err = getLedgerIndicesInfo2(clients.p, clients.c, ledgerIndicesU32, networks)
 		if err != nil {
 			return err
 		}
@@ -332,6 +333,61 @@ func listKeys(*cobra.Command, []string) error {
 	}
 	printAddrInfos(addrInfos)
 	return nil
+}
+
+func ShortIdToAddress(shortID ids.ShortID) string {
+	return common.BytesToAddress(shortID[:]).Hex()
+}
+
+func getLedgerIndicesInfo2(
+	pClients map[models.Network]platformvm.Client,
+	cClients map[models.Network]ethclient.Client,
+	ledgerIndices []uint32,
+	networks []models.Network,
+) ([]addressInfo, error) {
+	ledgerDevice, err := ledger2.New()
+	if err != nil {
+		return nil, err
+	}
+
+	addrInfos := []addressInfo{}
+	for _, network := range networks {
+		for _, index := range ledgerIndices {
+			pChainAddrShortId, err := ledgerDevice.PXAddress(index)
+			pChainAddr, err := address.Format("P", key.GetHRP(network.ID), pChainAddrShortId[:])
+			if err != nil {
+				return nil, err
+			}
+			if err != nil {
+				return []addressInfo{}, err
+			}
+			addrInfo, err := getPChainAddrInfo(
+				pClients,
+				network,
+				pChainAddr,
+				"ledger",
+				fmt.Sprintf("index %d", index),
+			)
+			if err != nil {
+				return nil, err
+			}
+			addrInfos = append(addrInfos, addrInfo)
+			cChainAddrShortId, err := ledgerDevice.EthAddress(index)
+			cChainAddr := ShortIdToAddress(cChainAddrShortId)
+			evmAddrInfos, err := getEvmBasedChainAddrInfo(
+				"C-Chain", "AVAX",
+				cClients[network], nil,
+				network,
+				cChainAddr,
+				"ledger",
+				fmt.Sprintf("index %d", index))
+			if err != nil {
+				return nil, err
+			}
+			addrInfos = append(addrInfos, evmAddrInfos...)
+		}
+	}
+	return addrInfos, nil
 }
 
 func getStoredKeysInfo(

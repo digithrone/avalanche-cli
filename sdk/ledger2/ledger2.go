@@ -29,6 +29,7 @@ type Ledger2 interface {
 	// add c-chain functions to get other addresses
 	SignEthTransaction(chainID *big.Int, unsignedTx *types.Transaction, ledgerIndex uint32) (*types.Transaction, error)
 	EthAddress(addressIndex uint32) (ids.ShortID, error)
+	PXAddress(addressIndex uint32) (ids.ShortID, error)
 }
 
 var _ keychain.Ledger = (*LedgerCustom)(nil)

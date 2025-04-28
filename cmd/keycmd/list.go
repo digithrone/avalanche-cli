@@ -305,7 +305,7 @@ func listKeys(*cobra.Command, []string) error {
 	queryLedger := len(ledgerIndices) > 0
 	if queryLedger {
 		pchain = true
-		cchain = false
+		cchain = true
 		xchain = false
 	}
 	if sdkUtils.Belongs(tokenAddresses, "Native") || sdkUtils.Belongs(tokenAddresses, "native") {
@@ -373,6 +373,9 @@ func getLedgerIndicesInfo2(
 			}
 			addrInfos = append(addrInfos, addrInfo)
 			cChainAddrShortId, err := ledgerDevice.EthAddress(index)
+			if err != nil {
+				return nil, err
+			}
 			cChainAddr := ShortIdToAddress(cChainAddrShortId)
 			evmAddrInfos, err := getEvmBasedChainAddrInfo(
 				"C-Chain", "AVAX",
@@ -596,6 +599,7 @@ func getEvmBasedChainAddrInfo(
 ) ([]addressInfo, error) {
 	addressInfos := []addressInfo{}
 	if showNativeToken {
+		fmt.Sprintf("%s (C Address)", cChainAddr)
 		cChainBalance, err := getCChainBalanceStr(cClient, cChainAddr)
 		if err != nil {
 			// just ignore local network errors

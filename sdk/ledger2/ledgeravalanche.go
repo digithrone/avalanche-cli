@@ -26,7 +26,6 @@ import (
 
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
-	"github.com/ethereum/go-ethereum/common"
 	ledger_go "github.com/zondax/ledger-go"
 	"golang.org/x/crypto/sha3"
 )
@@ -393,8 +392,8 @@ func (ledger *LedgerAvalanche) SignEthTransaction(bip32Path string, rlpEncodedTe
 	payload := []byte{byte(hdPathPayloadLen / 4)} // length of hdPath segments
 	payload = append(payload, hdPathPayload...)
 	payload = append(payload, rlpEncodedTexWithoutVRS...)
-	fmt.Println("HD:", common.Bytes2Hex(hdPathPayload))
-	fmt.Println("Rlp:", common.Bytes2Hex(rlpEncodedTexWithoutVRS))
+	//fmt.Println("HD:", common.Bytes2Hex(hdPathPayload))
+	//fmt.Println("Rlp:", common.Bytes2Hex(rlpEncodedTexWithoutVRS))
 	p1 := 0x0 //P1TypeSignFirstChunk
 	for len(payload) > 0 {
 		chunkSize := 255
@@ -405,8 +404,8 @@ func (ledger *LedgerAvalanche) SignEthTransaction(bip32Path string, rlpEncodedTe
 		apdu := []byte{CLA_ETH, INS_SIGN_HASH, byte(p1), 0x00, byte(chunkSize)}
 		apdu = append(apdu, chunk...)
 		apdus = append(apdus, apdu)
-		fmt.Println("Chunk len:", chunkSize)
-		fmt.Println("Chunk data:", common.Bytes2Hex(chunk))
+		//fmt.Println("Chunk len:", chunkSize)
+		//fmt.Println("Chunk data:", common.Bytes2Hex(chunk))
 		payload = payload[chunkSize:]
 		p1 = 0x80 //P1TypeSignSubsequentChunk
 	}

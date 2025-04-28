@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/ava-labs/avalanche-cli/cmd/flags"
@@ -297,7 +298,25 @@ func removeValidatorSOV(
 			return err
 		}
 		if !ownerPrivateKeyFound {
-			return fmt.Errorf("not private key found for Validator manager owner %s", validatorManagerOwner)
+			foundInLedger := false
+			if kc.Ledger2 != nil {
+				// check if address is in the ledger specified indices
+				for i, index := range kc.LedgerIndices {
+					ledgerCChainAddress, err := kc.Ledger2.EthAddress(index)
+					if err != nil {
+						return err
+					}
+					ledgerCAddress := common.BytesToAddress(ledgerCChainAddress.Bytes()).Hex()
+					if ledgerCAddress == sc.ValidatorManagerOwner {
+						foundInLedger = true
+						ownerPrivateKey = "ledger:" + strconv.Itoa(i)
+						break
+					}
+				}
+			}
+			if !foundInLedger {
+				return fmt.Errorf("private key for Validator manager owner %s is not found", sc.ValidatorManagerOwner)
+			}
 		}
 	}
 

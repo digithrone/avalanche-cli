@@ -374,7 +374,7 @@ func (c *Subnet) InitializeProofOfAuthority(
 	if client, err := evm.GetClient(c.RPC); err != nil {
 		log.Error("failure connecting to L1 to setup proposer VM", zap.Error(err))
 	} else {
-		if err := client.SetupProposerVM(privateKey); err != nil {
+		if err := client.SetupProposerVM(kc, privateKey); err != nil {
 			log.Error("failure setting proposer VM on L1", zap.Error(err))
 		}
 		client.Close()
@@ -442,7 +442,7 @@ func (c *Subnet) InitializeProofOfStake(
 	if client, err := evm.GetClient(c.RPC); err != nil {
 		log.Error("failure connecting to L1 to setup proposer VM", zap.Error(err))
 	} else {
-		if err := client.SetupProposerVM(privateKey); err != nil {
+		if err := client.SetupProposerVM(kc, privateKey); err != nil {
 			log.Error("failure setting proposer VM on L1", zap.Error(err))
 		}
 		client.Close()

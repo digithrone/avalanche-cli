@@ -572,7 +572,7 @@ func FinishValidatorRegistration(
 		if client, err := evm.GetClient(rpcURL); err != nil {
 			ux.Logger.RedXToUser("failure connecting to L1 to setup proposer VM: %w", err)
 		} else {
-			if err := client.SetupProposerVM(privateKey); err != nil {
+			if err := client.SetupProposerVM(kc, privateKey); err != nil {
 				ux.Logger.RedXToUser("failure setting proposer VM on L1: %w", err)
 			}
 			client.Close()

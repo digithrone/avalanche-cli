@@ -385,7 +385,7 @@ func SetProposerVM(
 		return err
 	}
 	defer client.Close()
-	return client.SetupProposerVM(privKeyStr)
+	return client.SetupProposerVM(nil, privKeyStr)
 }
 
 func getICMKeyInfo(

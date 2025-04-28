@@ -738,16 +738,31 @@ func (client Client) WaitForNewBlock(
 // issue dummy txs to create the given number of blocks
 func (client Client) CreateDummyBlocks(
 	numBlocks int,
+	kc *keychain.Keychain,
 	privKeyStr string,
 ) error {
-	addr, err := PrivateKeyToAddress(privKeyStr)
-	if err != nil {
-		return err
+	addr := common.Address{}
+	signWithLedger := kc != nil && kc.Ledger2 != nil && strings.HasPrefix(privKeyStr, "ledger:")
+	if signWithLedger { //handler ledger signing here
+		indexStr := strings.TrimPrefix(privKeyStr, "ledger:")
+		index, err := strconv.Atoi(indexStr)
+		if err != nil {
+			return err
+		}
+		addrShortId, err := kc.Ledger2.EthAddress(uint32(index))
+		addr = common.BytesToAddress(addrShortId[:])
+	} else {
+		a, err := PrivateKeyToAddress(privKeyStr)
+		if err != nil {
+			return err
+		}
+		addr = a
+		// privKey, err := crypto.HexToECDSA(privKeyStr)
+		// if err != nil {
+		// 	return err
+		// }
 	}
-	privKey, err := crypto.HexToECDSA(privKeyStr)
-	if err != nil {
-		return err
-	}
+
 	chainID, err := client.GetChainID()
 	if err != nil {
 		return err
@@ -764,8 +779,39 @@ func (client Client) CreateDummyBlocks(
 			return fmt.Errorf("client.NonceAt failure at step %d: %w", i, err)
 		}
 		// send Big1 to himself
-		tx := types.NewTransaction(nonce, addr, common.Big1, params.TxGas, gasPrice, nil)
-		triggerTx, err := types.SignTx(tx, txSigner, privKey)
+		var triggerTx *types.Transaction = nil
+		if signWithLedger {
+			tx := types.NewTx(&types.DynamicFeeTx{
+				ChainID:   chainID,
+				Nonce:     nonce,
+				To:        &addr,
+				Gas:       params.TxGas,
+				GasFeeCap: gasPrice,
+				GasTipCap: gasPrice,
+				Value:     common.Big1,
+			})
+			indexStr := strings.TrimPrefix(privKeyStr, "ledger:")
+			index, err := strconv.Atoi(indexStr)
+			if err != nil {
+				return fmt.Errorf("Faild to convert ledger index from %w string with %w", indexStr, err)
+			}
+			txLedger, err := kc.Ledger2.SignEthTransaction(chainID, tx, uint32(index))
+			if err != nil {
+				return fmt.Errorf("client.NonceAt failed to sign a transaction using ledger %d: %w", i, err)
+			}
+			triggerTx = txLedger
+		} else {
+			tx := types.NewTransaction(nonce, addr, common.Big1, params.TxGas, gasPrice, nil)
+			privKey, err := crypto.HexToECDSA(privKeyStr)
+			if err != nil {
+				return err
+			}
+			txLocal, err := types.SignTx(tx, txSigner, privKey)
+			if err != nil {
+				return err
+			}
+			triggerTx = txLocal
+		}
 		if err != nil {
 			return fmt.Errorf("types.SignTx failure at step %d: %w", i, err)
 		}
@@ -787,12 +833,13 @@ func (client Client) CreateDummyBlocks(
 // the current timestamp should be after the ProposerVM activation time (aka ApricotPhase4).
 // supports [repeatsOnFailure] failures on each step
 func (client Client) SetupProposerVM(
+	kc *keychain.Keychain,
 	privKey string,
 ) error {
 	const numBlocks = 2 // Number of blocks needed to activate the proposer VM fork
 	_, err := utils.Retry(
 		func() (any, error) {
-			return nil, client.CreateDummyBlocks(numBlocks, privKey)
+			return nil, client.CreateDummyBlocks(numBlocks, kc, privKey)
 		},
 		repeatsOnFailure,
 		sleepBetweenRepeats,

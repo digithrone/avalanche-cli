@@ -2176,7 +2176,7 @@ func TestSetupProposerVM(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.setupMock()
-			err := client.SetupProposerVM(tt.privateKey)
+			err := client.SetupProposerVM(nil, tt.privateKey)
 			if tt.expectError {
 				require.Error(t, err)
 				if tt.name != "invalid private key" {

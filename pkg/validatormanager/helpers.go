@@ -22,6 +22,7 @@ import (
 func GetValidatorNonce(
 	rpcURL string,
 	validationID ids.ID,
+	batchSize uint64,
 ) (uint64, error) {
 	client, err := evm.GetClient(rpcURL)
 	if err != nil {
@@ -34,8 +35,7 @@ func GetValidatorNonce(
 	count := uint64(0)
 	maxBlock := int64(height)
 	minBlock := int64(0)
-	batchSize := int64(1000)
-	for blockNumber := maxBlock; blockNumber >= minBlock; blockNumber = blockNumber - batchSize {
+	for blockNumber := maxBlock; blockNumber >= minBlock; blockNumber = blockNumber - int64(batchSize) {
 		// block, err := client.BlockByNumber(big.NewInt(blockNumber))
 		// if err != nil {
 		// 	return nil, err
@@ -45,7 +45,7 @@ func GetValidatorNonce(
 		// 	BlockHash: &blockHash,
 		// 	Addresses: []common.Address{subnetEvmWarp.Module.Address},
 		// })
-		start := max(blockNumber-batchSize, 0)
+		start := max(blockNumber-int64(batchSize), 0)
 		end := blockNumber
 		ux.Logger.PrintToUser(fmt.Sprintf("Block range fetch: %d-%d", start, end))
 		blockStart := new(big.Int)

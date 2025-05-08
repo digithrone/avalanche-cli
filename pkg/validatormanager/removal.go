@@ -170,6 +170,7 @@ func InitValidatorRemoval(
 	validatorManagerAddressStr string,
 	useACP99 bool,
 	initiateTxHash string,
+	batchSize uint64,
 ) (*warp.Message, ids.ID, *types.Transaction, error) {
 	subnetID, err := contract.GetSubnetID(
 		app,
@@ -276,7 +277,7 @@ func InitValidatorRemoval(
 	ux.Logger.PrintToUser(logging.LightBlue.Wrap("Getting nonce..."))
 	var nonce uint64
 	if unsignedMessage == nil {
-		nonce, err = GetValidatorNonce(rpcURL, validationID)
+		nonce, err = GetValidatorNonce(rpcURL, validationID, batchSize)
 		if err != nil {
 			return nil, ids.Empty, nil, err
 		}
@@ -356,6 +357,7 @@ func FinishValidatorRemoval(
 	aggregatorLogger logging.Logger,
 	validatorManagerAddressStr string,
 	useACP99 bool,
+	batchSize uint64,
 ) (*types.Transaction, error) {
 	managerAddress := common.HexToAddress(validatorManagerAddressStr)
 	subnetID, err := contract.GetSubnetID(
@@ -376,6 +378,7 @@ func FinishValidatorRemoval(
 		subnetID,
 		validationID,
 		false,
+		batchSize,
 	)
 	if err != nil {
 		return nil, err

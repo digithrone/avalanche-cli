@@ -239,6 +239,7 @@ func setWeight(_ *cobra.Command, args []string) error {
 			blockchainName,
 			nodeID,
 			newWeight,
+			batchSize,
 		)
 	} else {
 		ux.Logger.PrintToUser(logging.Yellow.Wrap("Validator Manager Protocol: v1.0.0"))
@@ -313,6 +314,7 @@ func setWeight(_ *cobra.Command, args []string) error {
 		disableOwnerAddr,
 		sc,
 		changeWeightFlags.RPC,
+		batchSize,
 	)
 }
 
@@ -323,6 +325,7 @@ func changeWeightACP99(
 	blockchainName string,
 	nodeID ids.NodeID,
 	weight uint64,
+	batchSize uint64,
 ) error {
 	chainSpec := contract.ChainSpec{
 		BlockchainName: blockchainName,
@@ -396,6 +399,7 @@ func changeWeightACP99(
 		validatorManagerAddress,
 		weight,
 		initiateTxHash,
+		batchSize,
 	)
 	if err != nil {
 		return err
@@ -451,6 +455,7 @@ func changeWeightACP99(
 		validatorManagerAddress,
 		signedMessage,
 		newWeight,
+		batchSize,
 	)
 	if err != nil {
 		return err

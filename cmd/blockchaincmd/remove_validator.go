@@ -39,6 +39,7 @@ import (
 var (
 	uptimeSec            uint64
 	force                bool
+	searchBatchSize      uint64
 	removeValidatorFlags BlockchainRemoveValidatorFlags
 )
 
@@ -73,6 +74,7 @@ these prompts by providing the values with flags.`,
 	cmd.Flags().StringVar(&pop, "bls-proof-of-possession", "", "set the BLS proof of possession of the validator to add")
 	cmd.Flags().StringVar(&nodeEndpoint, "node-endpoint", "", "remove validator that responds to the given endpoint")
 	cmd.Flags().Uint64Var(&uptimeSec, "uptime", 0, "validator's uptime in seconds. If not provided, it will be automatically calculated")
+	cmd.Flags().Uint64Var(&searchBatchSize, "search-batch-size", 1, "When searching for messages on chain from blockheight back. Defaults to 1 block.")
 	cmd.Flags().BoolVar(&force, "force", false, "force validator removal even if it's not getting rewarded")
 	cmd.Flags().BoolVar(&externalValidatorManagerOwner, "external-evm-signature", false, "set this value to true when signing validator manager tx outside of cli (for multisig or ledger)")
 	cmd.Flags().StringVar(&validatorManagerOwner, "validator-manager-owner", "", "force using this address to issue transactions to the validator manager")
@@ -375,6 +377,7 @@ func removeValidatorSOV(
 		validatorManagerAddress,
 		sc.UseACP99,
 		initiateTxHash,
+		searchBatchSize,
 	)
 	if err != nil && errors.Is(err, validatormanagerSDK.ErrValidatorIneligibleForRewards) {
 		ux.Logger.PrintToUser("Calculated rewards is zero. Validator %s is not eligible for rewards", nodeID)
@@ -406,6 +409,7 @@ func removeValidatorSOV(
 			validatorManagerAddress,
 			sc.UseACP99,
 			initiateTxHash,
+			searchBatchSize,
 		)
 		if err != nil {
 			return err
@@ -454,6 +458,7 @@ func removeValidatorSOV(
 		aggregatorLogger,
 		validatorManagerAddress,
 		sc.PoA() && sc.UseACP99,
+		searchBatchSize,
 	)
 	if err != nil {
 		return err

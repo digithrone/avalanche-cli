@@ -75,6 +75,7 @@ func InitValidatorWeightChange(
 	validatorManagerAddressStr string,
 	weight uint64,
 	initiateTxHash string,
+	batchSize uint64,
 ) (*warp.Message, ids.ID, *types.Transaction, error) {
 	subnetID, err := contract.GetSubnetID(
 		app,
@@ -120,7 +121,7 @@ func InitValidatorWeightChange(
 	}
 
 	if unsignedMessage == nil {
-		unsignedMessage, err = SearchForL1ValidatorWeightMessage(rpcURL, validationID, weight)
+		unsignedMessage, err = SearchForL1ValidatorWeightMessage(rpcURL, validationID, weight, batchSize)
 		if err != nil {
 			printFunc(logging.Red.Wrap("Failure checking for warp messages of previous operations: %s. Proceeding."), err)
 		}
@@ -157,7 +158,7 @@ func InitValidatorWeightChange(
 
 	var nonce uint64
 	if unsignedMessage == nil {
-		nonce, err = GetValidatorNonce(rpcURL, validationID)
+		nonce, err = GetValidatorNonce(rpcURL, validationID, batchSize)
 		if err != nil {
 			return nil, ids.Empty, nil, err
 		}
@@ -221,6 +222,7 @@ func FinishValidatorWeightChange(
 	validatorManagerAddressStr string,
 	l1ValidatorRegistrationSignedMessage *warp.Message,
 	weight uint64,
+	batchSize uint64,
 ) (*types.Transaction, error) {
 	managerAddress := common.HexToAddress(validatorManagerAddressStr)
 	subnetID, err := contract.GetSubnetID(
@@ -233,7 +235,7 @@ func FinishValidatorWeightChange(
 	}
 	var nonce uint64
 	if l1ValidatorRegistrationSignedMessage == nil {
-		nonce, err = GetValidatorNonce(rpcURL, validationID)
+		nonce, err = GetValidatorNonce(rpcURL, validationID, batchSize)
 		if err != nil {
 			return nil, err
 		}
@@ -435,6 +437,7 @@ func SearchForL1ValidatorWeightMessage(
 	rpcURL string,
 	validationID ids.ID,
 	weight uint64,
+	batchSize uint64,
 ) (*warp.UnsignedMessage, error) {
 	const maxBlocksToSearch = 500
 	client, err := evm.GetClient(rpcURL)
@@ -447,8 +450,7 @@ func SearchForL1ValidatorWeightMessage(
 	}
 	maxBlock := int64(height)
 	minBlock := max(maxBlock-maxBlocksToSearch, 0)
-	batchSize := int64(1000)
-	for blockNumber := maxBlock; blockNumber >= minBlock; blockNumber = blockNumber - batchSize {
+	for blockNumber := maxBlock; blockNumber >= minBlock; blockNumber = blockNumber - int64(batchSize) {
 		// block, err := client.BlockByNumber(big.NewInt(blockNumber))
 		// if err != nil {
 		// 	return nil, err
@@ -458,7 +460,7 @@ func SearchForL1ValidatorWeightMessage(
 		// 	BlockHash: &blockHash,
 		// 	Addresses: []common.Address{subnetEvmWarp.Module.Address},
 		// })
-		start := max(blockNumber-batchSize, 0)
+		start := max(blockNumber-int64(batchSize), 0)
 		end := blockNumber
 		ux.Logger.PrintToUser(fmt.Sprintf("Block range fetch: %d-%d", start, end))
 		blockStart := new(big.Int)

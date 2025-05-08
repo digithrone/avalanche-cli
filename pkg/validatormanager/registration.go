@@ -199,6 +199,7 @@ func GetRegisterL1ValidatorMessage(
 	alreadyInitialized bool,
 	initiateTxHash string,
 	registerSubnetValidatorUnsignedMessage *warp.UnsignedMessage,
+	batchSize uint64,
 ) (*warp.Message, ids.ID, error) {
 	var (
 		validationID ids.ID
@@ -227,6 +228,7 @@ func GetRegisterL1ValidatorMessage(
 				registerSubnetValidatorUnsignedMessage, err = SearchForRegisterL1ValidatorMessage(
 					rpcURL,
 					validationID,
+					batchSize,
 				)
 				if err != nil {
 					return nil, ids.Empty, err
@@ -316,6 +318,7 @@ func GetPChainL1ValidatorRegistrationMessage(
 	subnetID ids.ID,
 	validationID ids.ID,
 	registered bool,
+	batchSize uint64,
 ) (*warp.Message, error) {
 	addressedCallPayload, err := warpMessage.NewL1ValidatorRegistration(validationID, registered)
 	if err != nil {
@@ -349,7 +352,7 @@ func GetPChainL1ValidatorRegistrationMessage(
 	}
 	var justificationBytes []byte
 	if !registered {
-		justificationBytes, err = GetRegistrationJustification(rpcURL, validationID, subnetID)
+		justificationBytes, err = GetRegistrationJustification(rpcURL, validationID, subnetID, batchSize)
 		if err != nil {
 			return nil, err
 		}
@@ -407,6 +410,7 @@ func InitValidatorRegistration(
 	validatorManagerAddressStr string,
 	useACP99 bool,
 	initiateTxHash string,
+	batchSize uint64,
 ) (*warp.Message, ids.ID, *types.Transaction, error) {
 	subnetID, err := contract.GetSubnetID(
 		app,
@@ -525,6 +529,7 @@ func InitValidatorRegistration(
 		alreadyInitialized,
 		initiateTxHash,
 		unsignedMessage,
+		batchSize,
 	)
 
 	return signedMessage, validationID, nil, err
@@ -544,6 +549,7 @@ func FinishValidatorRegistration(
 	aggregatorExtraPeerEndpoints []info.Peer,
 	aggregatorLogger logging.Logger,
 	validatorManagerAddressStr string,
+	batchSize uint64,
 ) (*types.Transaction, error) {
 	subnetID, err := contract.GetSubnetID(
 		app,
@@ -564,6 +570,7 @@ func FinishValidatorRegistration(
 		subnetID,
 		validationID,
 		true,
+		batchSize,
 	)
 	if err != nil {
 		return nil, err
@@ -604,6 +611,7 @@ func FinishValidatorRegistration(
 func SearchForRegisterL1ValidatorMessage(
 	rpcURL string,
 	validationID ids.ID,
+	batchSize uint64,
 ) (*warp.UnsignedMessage, error) {
 	client, err := evm.GetClient(rpcURL)
 	if err != nil {
@@ -615,8 +623,7 @@ func SearchForRegisterL1ValidatorMessage(
 	}
 	maxBlock := int64(height)
 	minBlock := int64(0)
-	batchSize := int64(1000)
-	for blockNumber := maxBlock; blockNumber >= minBlock; blockNumber = blockNumber - batchSize {
+	for blockNumber := maxBlock; blockNumber >= minBlock; blockNumber = blockNumber - int64(batchSize) {
 		// block, err := client.BlockByNumber(big.NewInt(blockNumber))
 		// if err != nil {
 		// 	return nil, err
@@ -626,13 +633,13 @@ func SearchForRegisterL1ValidatorMessage(
 		// 	BlockHash: &blockHash,
 		// 	Addresses: []common.Address{subnetEvmWarp.Module.Address},
 		// })
-		start := max(blockNumber-batchSize, 0)
+		start := max(blockNumber-int64(batchSize), 0)
 		end := blockNumber
 		ux.Logger.PrintToUser(fmt.Sprintf("Block range fetch: %d-%d", start, end))
 		blockStart := new(big.Int)
-		blockStart.SetInt64(max(blockNumber-batchSize, 0))
+		blockStart.SetInt64(start)
 		blockEnd := new(big.Int)
-		blockEnd.SetInt64(blockNumber)
+		blockEnd.SetInt64(end)
 		logs, err := client.FilterLogs(interfaces.FilterQuery{
 			FromBlock: blockStart,
 			ToBlock:   blockEnd,
@@ -662,6 +669,7 @@ func GetRegistrationJustification(
 	rpcURL string,
 	validationID ids.ID,
 	subnetID ids.ID,
+	batchSize uint64,
 ) ([]byte, error) {
 	const numBootstrapValidatorsToSearch = 100
 	for validationIndex := uint32(0); validationIndex < numBootstrapValidatorsToSearch; validationIndex++ {
@@ -681,6 +689,7 @@ func GetRegistrationJustification(
 	msg, err := SearchForRegisterL1ValidatorMessage(
 		rpcURL,
 		validationID,
+		batchSize,
 	)
 	if err != nil {
 		return nil, err

@@ -642,6 +642,7 @@ func addAsValidator(
 		validatorManagerAddressStr,
 		useACP99,
 		"",
+		1, //default to 1
 	)
 	if err != nil {
 		return err
@@ -680,6 +681,7 @@ func addAsValidator(
 		extraAggregatorPeers,
 		aggregatorLogger,
 		validatorManagerAddress,
+		1, //default to 1
 	); err != nil {
 		return err
 	}

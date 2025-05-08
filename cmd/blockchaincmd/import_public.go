@@ -35,6 +35,7 @@ var (
 	nodeURL         string
 	useSubnetEvm    bool
 	useCustomVM     bool
+	batchSize       uint64
 )
 
 // avalanche blockchain import public
@@ -69,6 +70,7 @@ flag.`,
 		"",
 		"the blockchain ID",
 	)
+	cmd.Flags().Uint64Var(&searchBatchSize, "search-batch-size", 1, "When searching for messages on chain from blockheight back. Defaults to 1 block.")
 	return cmd
 }
 

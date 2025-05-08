@@ -333,6 +333,7 @@ func addValidator(cmd *cobra.Command, args []string) error {
 		disableOwnerAddr,
 		sc,
 		addValidatorFlags.RPC,
+		searchBatchSize,
 	); err != nil {
 		return err
 	}
@@ -366,6 +367,7 @@ func CallAddValidator(
 	disableOwnerAddr string,
 	sc models.Sidecar,
 	rpcURL string,
+	batchSize uint64,
 ) error {
 	nodeID, err := ids.NodeIDFromString(nodeIDStr)
 	if err != nil {
@@ -564,6 +566,7 @@ func CallAddValidator(
 		validatorManagerAddress,
 		sc.UseACP99,
 		initiateTxHash,
+		batchSize,
 	)
 	if err != nil {
 		return err
@@ -608,6 +611,7 @@ func CallAddValidator(
 		extraAggregatorPeers,
 		aggregatorLogger,
 		validatorManagerAddress,
+		batchSize,
 	)
 	if err != nil {
 		return err

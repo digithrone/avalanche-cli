@@ -615,14 +615,27 @@ func SearchForRegisterL1ValidatorMessage(
 	}
 	maxBlock := int64(height)
 	minBlock := int64(0)
-	for blockNumber := maxBlock; blockNumber >= minBlock; blockNumber-- {
-		block, err := client.BlockByNumber(big.NewInt(blockNumber))
-		if err != nil {
-			return nil, err
-		}
-		blockHash := block.Hash()
+	batchSize := int64(1000)
+	for blockNumber := maxBlock; blockNumber >= minBlock; blockNumber = blockNumber - batchSize {
+		// block, err := client.BlockByNumber(big.NewInt(blockNumber))
+		// if err != nil {
+		// 	return nil, err
+		// }
+		//blockHash := block.Hash()
+		// logs, err := client.FilterLogs(interfaces.FilterQuery{
+		// 	BlockHash: &blockHash,
+		// 	Addresses: []common.Address{subnetEvmWarp.Module.Address},
+		// })
+		start := max(blockNumber-batchSize, 0)
+		end := blockNumber
+		ux.Logger.PrintToUser(fmt.Sprintf("Block range fetch: %d-%d", start, end))
+		blockStart := new(big.Int)
+		blockStart.SetInt64(max(blockNumber-batchSize, 0))
+		blockEnd := new(big.Int)
+		blockEnd.SetInt64(blockNumber)
 		logs, err := client.FilterLogs(interfaces.FilterQuery{
-			BlockHash: &blockHash,
+			FromBlock: blockStart,
+			ToBlock:   blockEnd,
 			Addresses: []common.Address{subnetEvmWarp.Module.Address},
 		})
 		if err != nil {

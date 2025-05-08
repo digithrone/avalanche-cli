@@ -266,13 +266,14 @@ func InitValidatorRemoval(
 		ux.Logger.PrintToUser(logging.LightBlue.Wrap("The validator removal process was already initialized. Proceeding to the next step"))
 	}
 
+	ux.Logger.PrintToUser(logging.LightBlue.Wrap("Extracting warp message from receipts..."))
 	if receipt != nil {
 		unsignedMessage, err = evm.ExtractWarpMessageFromReceipt(receipt)
 		if err != nil {
 			return nil, ids.Empty, nil, err
 		}
 	}
-
+	ux.Logger.PrintToUser(logging.LightBlue.Wrap("Getting nonce..."))
 	var nonce uint64
 	if unsignedMessage == nil {
 		nonce, err = GetValidatorNonce(rpcURL, validationID)
@@ -280,7 +281,7 @@ func InitValidatorRemoval(
 			return nil, ids.Empty, nil, err
 		}
 	}
-
+	ux.Logger.PrintToUser(logging.LightBlue.Wrap("GetL1ValidatorWeightMessage..."))
 	signedMsg, err := GetL1ValidatorWeightMessage(
 		ctx,
 		network,

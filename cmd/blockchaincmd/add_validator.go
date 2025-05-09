@@ -132,6 +132,7 @@ Testnet or Mainnet.`,
 	cmd.Flags().StringVar(&initiateTxHash, "initiate-tx-hash", "", "initiate tx is already issued, with the given hash")
 	cmd.Flags().Uint32Var(&httpPort, "http-port", 0, "http port for node")
 	cmd.Flags().Uint32Var(&stakingPort, "staking-port", 0, "staking port for node")
+	cmd.Flags().Uint64Var(&searchBatchSize, "search-batch-size", 1, "When searching for messages on chain from blockheight back. Defaults to 1 block.")
 
 	return cmd
 }
